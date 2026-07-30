@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shopping">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+<title>Shopping</title>
+<style>
+  :root{
+    --bg:#000000;
+    --surface:#141416;
+    --surface-2:#1d1d20;
+    --border:#2a2a2e;
+    --text:#f5f5f5;
+    --dim:#8a8a8f;
+    --faint:#54545a;
+    --done:#f5f5f5;
+    --danger:#d6685f;
+    --safe-top:env(safe-area-inset-top,0px);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;}
+  body{padding-bottom:calc(82px + var(--safe-bottom));}
+  button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer;}
+  input,select{font-family:inherit;}
+  .wrap{max-width:480px;margin:0 auto;padding:0 20px;}
+
+  header{padding-top:calc(var(--safe-top) + 26px);display:flex;align-items:flex-start;justify-content:space-between;}
+  .h-left{min-width:0;}
+  .h-date{font-size:13px;color:var(--faint);font-weight:600;letter-spacing:.02em;}
+  .h-title{font-size:30px;font-weight:700;letter-spacing:-.025em;margin-top:3px;}
+  .h-sub{font-size:12px;color:var(--faint);font-weight:600;margin-top:4px;}
+  .h-sub b{color:var(--text);font-weight:700;}
+  .h-edit{font-size:15px;font-weight:600;color:var(--dim);padding:6px 4px;margin-top:24px;}
+  .h-edit.on{color:var(--text);}
+
+  .prog{margin:22px 0 6px;}
+  .prog-meta{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--dim);font-weight:600;margin-bottom:9px;}
+  .prog-pct{color:var(--text);}
+  .prog-bar{height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;}
+  .prog-fill{height:100%;background:var(--done);border-radius:3px;width:0;transition:width .6s cubic-bezier(.22,1,.36,1);}
+
+  .sec{font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:26px 0 9px;}
+  .sec.first{margin-top:20px;}
+
+  .item{display:flex;align-items:center;gap:15px;background:var(--surface);border:1px solid var(--border);
+    border-radius:15px;padding:15px 17px;margin-bottom:10px;transition:background .15s;}
+  .item:active{background:var(--surface-2);}
+  .check{flex:0 0 25px;height:25px;border-radius:8px;border:2px solid var(--faint);
+    display:flex;align-items:center;justify-content:center;transition:all .18s;}
+  .check svg{width:15px;height:15px;stroke:#000;opacity:0;transition:opacity .15s;}
+  .item.done .check{background:var(--done);border-color:var(--done);}
+  .item.done .check svg{opacity:1;}
+  .i-body{flex:1;min-width:0;}
+  .i-name{font-size:16px;font-weight:600;letter-spacing:-.01em;word-break:break-word;}
+  .item.done .i-name{color:var(--faint);text-decoration:line-through;}
+  .i-qty{font-size:12.5px;color:var(--faint);margin-top:2px;font-weight:500;}
+  .i-del{flex:0 0 auto;color:var(--danger);font-size:14px;font-weight:700;padding:6px 4px;}
+  .i-drag{flex:0 0 auto;color:var(--faint);padding:6px 2px;display:flex;}
+
+  .empty{text-align:center;color:var(--faint);font-size:14px;font-weight:500;line-height:1.6;padding:60px 20px;}
+
+  .fav{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);
+    border-radius:15px;padding:15px 17px;margin-bottom:10px;width:100%;text-align:left;}
+  .fav:active{background:var(--surface-2);}
+  .fav .f-plus{flex:0 0 auto;color:var(--dim);display:flex;}
+  .f-body{flex:1;min-width:0;}
+  .f-name{font-size:16px;font-weight:600;letter-spacing:-.01em;display:block;}
+  .f-cat{font-size:12.5px;color:var(--faint);margin-top:2px;display:block;}
+
+  .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--safe-bottom));
+    background:var(--text);color:#000;font-size:15px;font-weight:700;padding:14px 26px;border-radius:30px;
+    display:flex;align-items:center;gap:8px;z-index:60;box-shadow:0 8px 26px rgba(0,0,0,.6);}
+  .fab:active{filter:brightness(.88);}
+  .fab svg{width:18px;height:18px;}
+
+  nav{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.82);
+    backdrop-filter:saturate(180%) blur(22px);-webkit-backdrop-filter:saturate(180%) blur(22px);
+    border-top:1px solid var(--border);padding-bottom:var(--safe-bottom);z-index:50;}
+  .nav-inner{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);}
+  .tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 0 9px;color:var(--faint);font-size:10.5px;font-weight:600;}
+  .tab svg{width:21px;height:21px;}
+  .tab.active{color:var(--text);}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:100;
+    display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .overlay.open{opacity:1;pointer-events:auto;}
+  .sheet{background:var(--surface);width:100%;max-width:480px;border-radius:24px 24px 0 0;
+    padding:24px 20px calc(24px + var(--safe-bottom));transform:translateY(100%);
+    transition:transform .28s cubic-bezier(.22,1,.36,1);border-top:1px solid var(--border);}
+  .overlay.open .sheet{transform:translateY(0);}
+  .sheet h3{margin:0 0 18px;font-size:19px;font-weight:700;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--dim);font-weight:600;margin-bottom:8px;letter-spacing:.02em;}
+  .field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:13px;
+    padding:15px;font-size:16px;color:var(--text);outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none;}
+  .field select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8a8f' stroke-width='2' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat;background-position:right 15px center;background-size:18px;padding-right:44px;}
+  .field input:focus,.field select:focus{border-color:var(--dim);}
+  .sheet-actions{display:flex;gap:10px;margin-top:18px;}
+  .btn-primary{flex:1;background:var(--text);color:#000;border-radius:14px;padding:15px;font-size:16px;font-weight:700;}
+  .btn-primary:active{filter:brightness(.88);}
+  .btn-del{padding:15px 18px;font-size:16px;font-weight:600;color:var(--danger);}
+
+  .s-sec{font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:28px 0 10px;}
+  .s-row{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);
+    border-radius:15px;padding:16px 17px;margin-bottom:10px;width:100%;text-align:left;}
+  .s-row:active{background:var(--surface-2);}
+  .s-ico{flex:0 0 auto;color:var(--dim);display:flex;}
+  .s-ico svg{width:21px;height:21px;}
+  .s-txt{flex:1;min-width:0;}
+  .s-title{font-size:16px;font-weight:600;letter-spacing:-.01em;display:block;}
+  .s-sub{font-size:12.5px;color:var(--faint);margin-top:2px;display:block;}
+  .s-row.danger .s-title,.s-row.danger .s-ico{color:var(--danger);}
+  .s-note{font-size:12.5px;color:var(--faint);line-height:1.6;margin-top:16px;padding:0 2px;}
+  .field textarea{width:100%;min-height:130px;background:var(--bg);border:1px solid var(--border);border-radius:13px;
+    padding:14px;font-size:13px;color:var(--text);outline:none;resize:vertical;font-family:ui-monospace,Menlo,monospace;}
+
+  #toast{position:fixed;left:50%;bottom:calc(160px + var(--safe-bottom));
+    transform:translateX(-50%) translateY(20px);background:var(--text);color:#000;font-size:14px;font-weight:600;
+    padding:12px 20px;border-radius:30px;opacity:0;pointer-events:none;transition:all .25s;z-index:200;white-space:nowrap;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+  .view{animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+
+<div class="view" id="view"></div>
+
+<button class="fab" id="fab" onclick="openAdd()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  Add item
+</button>
+
+<nav>
+  <div class="nav-inner">
+    <button class="tab active" data-tab="list" onclick="switchTab('list')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h2l2.4 11.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg>
+      List
+    </button>
+    <button class="tab" data-tab="fav" onclick="switchTab('fav')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.3l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9L12 3l2.8 5.7 6.3.9-4.6 4.4 1.1 6.3z"/></svg>
+      Favorites
+    </button>
+    <button class="tab" data-tab="settings" onclick="switchTab('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </div>
+</nav>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<input type="file" id="import-file" accept="application/json,.json" style="display:none">
+<div id="toast"></div>
+
+<script>
+const STORE="shoppingList_v1";
+const CATS=["Fruit & Veg","Bakery","Dairy","Meat & Fish","Frozen","Pantry","Drinks","Snacks","Household","Other"];
+
+let data=load();
+let tab="list";
+let editMode=false;
+
+function load(){
+  try{ const d=JSON.parse(localStorage.getItem(STORE)); if(d&&d.items) return d; }catch(e){}
+  return { items:[], favs:[] };
+}
+function save(){ localStorage.setItem(STORE, JSON.stringify(data)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),1600);
+}
+
+/* ---------- Sheet ---------- */
+function openSheet(html){
+  document.getElementById("sheet").innerHTML=html;
+  document.getElementById("overlay").classList.add("open");
+}
+function closeSheet(){ document.getElementById("overlay").classList.remove("open"); }
+
+function catOptions(sel){
+  return CATS.map(c=>`<option value="${esc(c)}"${c===sel?" selected":""}>${esc(c)}</option>`).join("");
+}
+
+function openAdd(){
+  openSheet(`
+    <h3>Add item</h3>
+    <div class="field"><label>Name</label><input id="f-name" placeholder="e.g. Milk" autocomplete="off"></div>
+    <div class="field"><label>Quantity</label><input id="f-qty" placeholder="e.g. 2x / 500g" autocomplete="off"></div>
+    <div class="field"><label>Category</label><select id="f-cat">${catOptions("Other")}</select></div>
+    <div class="sheet-actions">
+      <button class="btn-primary" onclick="addItem()">Add</button>
+    </div>`);
+  setTimeout(()=>document.getElementById("f-name").focus(),320);
+  document.getElementById("f-name").addEventListener("keydown",e=>{ if(e.key==="Enter") addItem(); });
+}
+function addItem(){
+  const name=document.getElementById("f-name").value.trim();
+  if(!name){ toast("Name is missing"); return; }
+  data.items.unshift({id:uid(),name,qty:document.getElementById("f-qty").value.trim(),cat:document.getElementById("f-cat").value,done:false});
+  save(); closeSheet(); render(); toast("Added");
+}
+
+function openEdit(id){
+  const it=data.items.find(x=>x.id===id); if(!it) return;
+  openSheet(`
+    <h3>Edit item</h3>
+    <div class="field"><label>Name</label><input id="f-name" value="${esc(it.name)}"></div>
+    <div class="field"><label>Quantity</label><input id="f-qty" value="${esc(it.qty||"")}"></div>
+    <div class="field"><label>Category</label><select id="f-cat">${catOptions(it.cat)}</select></div>
+    <div class="sheet-actions">
+      <button class="btn-primary" onclick="saveEdit('${it.id}')">Save</button>
+      <button class="btn-del" onclick="delItem('${it.id}')">Delete</button>
+    </div>`);
+}
+function saveEdit(id){
+  const it=data.items.find(x=>x.id===id); if(!it) return;
+  const n=document.getElementById("f-name").value.trim(); if(!n){ toast("Name is missing"); return; }
+  it.name=n; it.qty=document.getElementById("f-qty").value.trim(); it.cat=document.getElementById("f-cat").value;
+  save(); closeSheet(); render();
+}
+function delItem(id){
+  data.items=data.items.filter(x=>x.id!==id);
+  save(); closeSheet(); render(); toast("Deleted");
+}
+function toggle(id){
+  const it=data.items.find(x=>x.id===id); if(!it) return;
+  it.done=!it.done; save(); render();
+  if(navigator.vibrate) navigator.vibrate(8);
+}
+
+/* ---------- Favorites ---------- */
+function openAddFav(){
+  openSheet(`
+    <h3>New favorite</h3>
+    <div class="field"><label>Name</label><input id="f-name" placeholder="e.g. Oats" autocomplete="off"></div>
+    <div class="field"><label>Category</label><select id="f-cat">${catOptions("Other")}</select></div>
+    <div class="sheet-actions">
+      <button class="btn-primary" onclick="addFav()">Save</button>
+    </div>`);
+  setTimeout(()=>document.getElementById("f-name").focus(),320);
+}
+function addFav(){
+  const name=document.getElementById("f-name").value.trim();
+  if(!name){ toast("Name is missing"); return; }
+  data.favs.push({id:uid(),name,cat:document.getElementById("f-cat").value});
+  save(); closeSheet(); render(); toast("Favorite saved");
+}
+function delFav(id,e){
+  e.stopPropagation();
+  data.favs=data.favs.filter(f=>f.id!==id); save(); render(); toast("Deleted");
+}
+function favToList(id){
+  const f=data.favs.find(x=>x.id===id); if(!f) return;
+  if(data.items.some(i=>i.name.toLowerCase()===f.name.toLowerCase() && !i.done)){ toast("Already on the list"); return; }
+  data.items.unshift({id:uid(),name:f.name,qty:"",cat:f.cat,done:false});
+  save(); render(); toast(f.name+" added");
+  if(navigator.vibrate) navigator.vibrate(8);
+}
+function starItem(id,e){
+  e.stopPropagation();
+  const it=data.items.find(x=>x.id===id); if(!it) return;
+  if(data.favs.some(f=>f.name.toLowerCase()===it.name.toLowerCase())){ toast("Already a favorite"); return; }
+  data.favs.push({id:uid(),name:it.name,cat:it.cat});
+  save(); render(); toast("Saved as favorite");
+}
+
+/* ---------- Settings ---------- */
+function clearDone(){
+  const n=data.items.filter(i=>i.done).length;
+  if(!n){ toast("Nothing checked off"); return; }
+  data.items=data.items.filter(i=>!i.done); save(); render(); toast(n+" removed");
+}
+function clearAll(){
+  if(!confirm("Clear the whole list?")) return;
+  data.items=[]; save(); render(); toast("List cleared");
+}
+function exportData(){
+  const json=JSON.stringify(data,null,2);
+  openSheet(`
+    <h3>Backup</h3>
+    <div class="field"><label>JSON (copy & keep it safe)</label><textarea id="f-exp" readonly>${esc(json)}</textarea></div>
+    <div class="sheet-actions">
+      <button class="btn-primary" onclick="copyExport()">Copy</button>
+      <button class="btn-del" style="color:var(--dim)" onclick="downloadExport()">File</button>
+    </div>`);
+}
+function copyExport(){
+  const t=document.getElementById("f-exp"); t.select();
+  navigator.clipboard.writeText(t.value).then(()=>{closeSheet();toast("Copied");}).catch(()=>{document.execCommand("copy");closeSheet();toast("Copied");});
+}
+function downloadExport(){
+  const b=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(b); a.download="shopping-backup.json"; a.click();
+  closeSheet();
+}
+document.getElementById("import-file").addEventListener("change",function(){
+  const f=this.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d.items) throw 0;
+      data=d; if(!data.favs) data.favs=[];
+      save(); render(); toast("Imported");
+    }catch(e){ toast("Invalid file"); }
+  };
+  r.readAsText(f); this.value="";
+});
+
+/* ---------- Render ---------- */
+function switchTab(t){
+  tab=t; editMode=false;
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
+  document.getElementById("fab").style.display = (t==="settings") ? "none" : "flex";
+  render();
+}
+
+const CHECK='<svg viewBox="0 0 24 24" fill="none" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+const STAR='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.3l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9L12 3l2.8 5.7 6.3.9-4.6 4.4 1.1 6.3z"/></svg>';
+const PLUS='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+
+function render(){
+  const v=document.getElementById("view");
+  if(tab==="list") v.innerHTML=viewList();
+  else if(tab==="fav") v.innerHTML=viewFav();
+  else v.innerHTML=viewSettings();
+  v.classList.remove("view"); void v.offsetWidth; v.classList.add("view");
+}
+
+function viewList(){
+  const total=data.items.length, done=data.items.filter(i=>i.done).length;
+  const pct=total?Math.round(done/total*100):0;
+  const dateStr=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+
+  let body="";
+  if(!total){
+    body=`<div class="empty">Your list is empty.<br>Tap “Add item” or grab something from Favorites.</div>`;
+  }else{
+    const open=data.items.filter(i=>!i.done);
+    const byCat={};
+    open.forEach(i=>{ (byCat[i.cat]=byCat[i.cat]||[]).push(i); });
+    let first=true;
+    CATS.forEach(c=>{
+      if(!byCat[c]) return;
+      body+=`<div class="sec${first?" first":""}">${esc(c)}</div>`; first=false;
+      body+=byCat[c].map(itemHTML).join("");
+    });
+    const dn=data.items.filter(i=>i.done);
+    if(dn.length){
+      body+=`<div class="sec">In the cart · ${dn.length}</div>`+dn.map(itemHTML).join("");
+    }
+  }
+
+  return `<div class="wrap">
+    <header>
+      <div class="h-left">
+        <div class="h-date">${esc(dateStr)}</div>
+        <div class="h-title">Shopping</div>
+        <div class="h-sub"><b>${done}</b> of <b>${total}</b> in the cart</div>
+      </div>
+      <button class="h-edit${editMode?" on":""}" onclick="editMode=!editMode;render()">${editMode?"Done":"Edit"}</button>
+    </header>
+    <div class="prog">
+      <div class="prog-meta"><span>Progress</span><span class="prog-pct">${pct}%</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    </div>
+    ${body}
+  </div>`;
+}
+
+function itemHTML(i){
+  const right = editMode
+    ? `<button class="i-del" onclick="event.stopPropagation();delItem('${i.id}')">Delete</button>`
+    : `<button class="i-drag" onclick="starItem('${i.id}',event)">${STAR}</button>`;
+  return `<div class="item${i.done?" done":""}" onclick="${editMode?`openEdit('${i.id}')`:`toggle('${i.id}')`}">
+    <div class="check">${CHECK}</div>
+    <div class="i-body">
+      <div class="i-name">${esc(i.name)}</div>
+      ${i.qty?`<div class="i-qty">${esc(i.qty)}</div>`:""}
+    </div>
+    ${right}
+  </div>`;
+}
+
+function viewFav(){
+  let body="";
+  if(!data.favs.length){
+    body=`<div class="empty">No favorites yet.<br>Tap the star on any item to save it here.</div>`;
+  }else{
+    const sorted=[...data.favs].sort((a,b)=>a.name.localeCompare(b.name,"en"));
+    body=sorted.map(f=>`
+      <button class="fav" onclick="favToList('${f.id}')">
+        <span class="f-plus">${PLUS}</span>
+        <span class="f-body"><span class="f-name">${esc(f.name)}</span><span class="f-cat">${esc(f.cat)}</span></span>
+        ${editMode?`<span class="i-del" onclick="delFav('${f.id}',event)">Delete</span>`:""}
+      </button>`).join("");
+  }
+  return `<div class="wrap">
+    <header>
+      <div class="h-left">
+        <div class="h-date">Quick add</div>
+        <div class="h-title">Favorites</div>
+        <div class="h-sub"><b>${data.favs.length}</b> saved</div>
+      </div>
+      <button class="h-edit${editMode?" on":""}" onclick="editMode=!editMode;render()">${editMode?"Done":"Edit"}</button>
+    </header>
+    <div style="height:20px"></div>
+    ${body}
+  </div>`;
+}
+
+function viewSettings(){
+  const ICO=s=>`<span class="s-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${s}</svg></span>`;
+  return `<div class="wrap">
+    <header><div class="h-left"><div class="h-date">App</div><div class="h-title">Settings</div></div></header>
+
+    <div class="s-sec">List</div>
+    <button class="s-row" onclick="openAddFav()">
+      ${ICO('<path d="M12 17.3l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9L12 3l2.8 5.7 6.3.9-4.6 4.4 1.1 6.3z"/>')}
+      <span class="s-txt"><span class="s-title">New favorite</span><span class="s-sub">Items you buy often</span></span>
+    </button>
+    <button class="s-row" onclick="clearDone()">
+      ${ICO('<path d="M20 6L9 17l-5-5"/>')}
+      <span class="s-txt"><span class="s-title">Remove checked items</span><span class="s-sub">Clear everything in the cart</span></span>
+    </button>
+    <button class="s-row danger" onclick="clearAll()">
+      ${ICO('<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>')}
+      <span class="s-txt"><span class="s-title">Clear list</span><span class="s-sub">Delete all items</span></span>
+    </button>
+
+    <div class="s-sec">Backup</div>
+    <button class="s-row" onclick="exportData()">
+      ${ICO('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>')}
+      <span class="s-txt"><span class="s-title">Export</span><span class="s-sub">Copy or save as JSON</span></span>
+    </button>
+    <button class="s-row" onclick="document.getElementById('import-file').click()">
+      ${ICO('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>')}
+      <span class="s-txt"><span class="s-title">Import</span><span class="s-sub">Load a backup file</span></span>
+    </button>
+
+    <div class="s-note">Everything is stored locally on this device (localStorage). Use export / import to move your list between phone and PC.</div>
+  </div>`;
+}
+
+render();
+
+/* ---------- PWA ---------- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
