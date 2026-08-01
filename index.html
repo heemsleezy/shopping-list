@@ -173,7 +173,7 @@
 
 <script>
 const STORE="shoppingList_v1";
-const CATS=["Fruit & Veg","Frozen","Household","Selfcare"];
+const CATS=["Fruit & Veg","Frozen","Household","Selfcare","Other"];
 
 let data=load();
 let tab="list";
@@ -184,7 +184,7 @@ function load(){
     const d=JSON.parse(localStorage.getItem(STORE));
     if(d&&d.items){
       if(!d.favs) d.favs=[];
-      [...d.items,...d.favs].forEach(x=>{ if(!CATS.includes(x.cat)) x.cat=CATS[0]; });
+      [...d.items,...d.favs].forEach(x=>{ if(!CATS.includes(x.cat)) x.cat="Other"; });
       return d;
     }
   }catch(e){}
@@ -216,7 +216,7 @@ function openAdd(){
     <h3>Add item</h3>
     <div class="field"><label>Name</label><input id="f-name" placeholder="e.g. Milk" autocomplete="off"></div>
     <div class="field"><label>Quantity</label><input id="f-qty" placeholder="e.g. 2x / 500g" autocomplete="off"></div>
-    <div class="field"><label>Category</label><select id="f-cat">${catOptions("Fruit & Veg")}</select></div>
+    <div class="field"><label>Category</label><select id="f-cat">${catOptions("Other")}</select></div>
     <div class="sheet-actions">
       <button class="btn-primary" onclick="addItem()">Add</button>
     </div>`);
@@ -263,7 +263,7 @@ function openAddFav(){
   openSheet(`
     <h3>New favorite</h3>
     <div class="field"><label>Name</label><input id="f-name" placeholder="e.g. Oats" autocomplete="off"></div>
-    <div class="field"><label>Category</label><select id="f-cat">${catOptions("Fruit & Veg")}</select></div>
+    <div class="field"><label>Category</label><select id="f-cat">${catOptions("Other")}</select></div>
     <div class="sheet-actions">
       <button class="btn-primary" onclick="addFav()">Save</button>
     </div>`);

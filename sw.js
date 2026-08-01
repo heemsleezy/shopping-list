@@ -1,5 +1,5 @@
 /* Bump this version on EVERY change to index.html! */
-const CACHE = "shopping-v2";
+const CACHE = "shopping-v3";
 
 const ASSETS = [
   "./",
